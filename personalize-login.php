@@ -399,7 +399,7 @@ class Personalize_Login_Plugin
             return $this->get_template_html('register_pre_form', $attributes);
         }
     }
-
+    
     /**
      * A shortcode for rendering the new user registration form.
      *
