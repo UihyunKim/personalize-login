@@ -26,9 +26,6 @@ class Personalize_Login_Plugin
         add_action('wp_logout', array($this, 'redirect_after_logout'));
         add_filter('login_redirect', array($this, 'redirect_after_login'), 10, 3);
 
-        // PRE-REGISTER
-        add_shortcode('custom-register-pre-form', array($this, 'render_register_pre_form'));
-
         // REGISTER
         add_shortcode('custom-register-form', array($this, 'render_register_form'));
         add_action('login_form_register', array($this, 'redirect_to_custom_register'));
@@ -112,10 +109,6 @@ class Personalize_Login_Plugin
             'member-account' => array(
                 'title' => __('Your Account', 'personalize-login'),
                 'content' => '[account-info]',
-            ),
-            'member-pre-register' => array(
-                'title' => __('Pre-Register', 'personalize-login'),
-                'content' => '[custom-register-pre-form]',
             ),
             'member-register' => array(
                 'title' => __('Register', 'personalize-login'),
@@ -742,47 +735,6 @@ class Personalize_Login_Plugin
             }
 
             exit;
-        }
-    }
-
-    public function v_forcelogin()
-    {
-        // Exceptions for AJAX, Cron, or WP-CLI requests
-        if ((defined('DOING_AJAX') && DOING_AJAX) || (defined('DOING_CRON') && DOING_CRON) || (defined('WP_CLI') && WP_CLI)) {
-            return;
-        }
-
-        // Redirect unauthorized visitors
-        if (!is_user_logged_in()) {
-            // Get URL
-            $url = isset($_SERVER['HTTPS']) && 'on' === $_SERVER['HTTPS'] ? 'https' : 'http';
-            $url .= '://' . $_SERVER['HTTP_HOST'];
-            // port is prepopulated here sometimes
-            if (strpos($_SERVER['HTTP_HOST'], ':') === false) {
-                $url .= in_array($_SERVER['SERVER_PORT'], array('80', '443')) ? '' : ':' . $_SERVER['SERVER_PORT'];
-            }
-            $url .= $_SERVER['REQUEST_URI'];
-
-            // add '~/member-login'
-            $url .= 'member-login';
-
-            // Apply filters
-            $bypass = apply_filters('v_forcelogin_bypass', false);
-            $whitelist = apply_filters('v_forcelogin_whitelist', array());
-            $redirect_url = apply_filters('v_forcelogin_redirect', $url);
-
-            // Redirect
-            if (preg_replace('/\?.*/', '', $url) != preg_replace('/\?.*/', '', wp_login_url()) && !in_array($url, $whitelist) && !$bypass) {
-                wp_safe_redirect(wp_login_url($redirect_url), 302);exit();
-            }
-        } else {
-            // Only allow Multisite users access to their assigned sites
-            if (function_exists('is_multisite') && is_multisite()) {
-                $current_user = wp_get_current_user();
-                if (!is_user_member_of_blog($current_user->ID) && !is_super_admin()) {
-                    wp_die(__("You're not authorized to access this site.", 'wp-force-login'), get_option('blogname') . ' &rsaquo; ' . __("Error", 'wp-force-login'));
-                }
-            }
         }
     }
 
